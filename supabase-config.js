@@ -1,1 +1,4 @@
-window.KFC_CONFIG={SUPABASE_URL:"https://axgtsvdekbspsalxhbzx.supabase.co",SUPABASE_KEY:"sb_publishable_Hq8J9-w_mpWrZQ_eBFnhoA_3hQVPdo7"};
+window.KFC_CONFIG={
+  SUPABASE_URL:"https://axgtsvdekbspsalxhbzx.supabase.co",
+  SUPABASE_KEY:"sb_publishable_Hq8J9-w_mpWrZQ_eBFnhoA_3hQVPdo7"
+};
