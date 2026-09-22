@@ -1,0 +1,5 @@
+const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);
+const code=(new URLSearchParams(location.search).get("center")||"").toUpperCase(),names={TP01:"台北外送中心",NT01:"新北外送中心",TY01:"桃園外送中心",TC01:"台中外送中心",TN01:"台南外送中心",KH01:"高雄外送中心"};
+if(names[code]){$("title").textContent=names[code]+" 後台登入";$("hint").textContent="登入後顯示 "+names[code]+" 資料"}
+async function go(){const {data,error}=await sb.rpc("admin_login",{p_username:$("username").value.trim(),p_password:$("password").value});const a=data?.[0];if(error||!a)return $("msg").textContent="帳號或密碼錯誤";if(code&&a.role!=="op"&&a.center_code!==code)return $("msg").textContent="此帳號沒有這個中心權限";sessionStorage.setItem("kfc_admin",JSON.stringify(a));location.href="./admin.html"}
+$("login").onclick=go;$("password").onkeydown=e=>{if(e.key==="Enter")go()};
