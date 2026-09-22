@@ -1,21 +1,17 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   background: #f5f1e9;
-  font-family: Arial, "Noto Sans TC", sans-serif;
   color: #171717;
+  font-family: Arial, "Noto Sans TC", sans-serif;
 }
 
 .wrap {
-  max-width: 720px;
-  margin: auto;
+  width: min(720px, 100%);
+  margin: 0 auto;
   padding: 20px 14px 60px;
 }
-
-/* ===== 頁首 ===== */
 
 header {
   text-align: center;
@@ -34,28 +30,22 @@ header h1 {
   font-size: 28px;
 }
 
-header p {
-  color: #777;
-}
-
-/* ===== 每一區卡片 ===== */
+header p { color: #777; }
 
 .card {
-  background: #ffffff;
+  background: #fff;
   border: 1px solid #ddd5ca;
   border-radius: 22px;
   padding: 27px 20px;
   margin: 15px 0;
   text-align: center;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 3px 12px rgba(0,0,0,.04);
 }
 
 .card h2 {
   font-size: 21px;
   margin: 20px 0 18px;
 }
-
-/* ===== 輸入框 ===== */
 
 input,
 select,
@@ -66,7 +56,7 @@ textarea {
   border-radius: 15px;
   padding: 12px 16px;
   font-size: 18px;
-  background: #ffffff;
+  background: #fff;
 }
 
 input:focus,
@@ -76,9 +66,7 @@ textarea:focus {
   border-color: #d71920;
 }
 
-textarea {
-  resize: vertical;
-}
+textarea { resize: vertical; }
 
 label {
   display: block;
@@ -87,8 +75,6 @@ label {
   font-weight: 700;
 }
 
-/* ===== 兩欄排列 ===== */
-
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -96,12 +82,10 @@ label {
   text-align: left;
 }
 
-/* ===== 車牌搜尋結果 ===== */
-
 .result {
   padding: 14px;
   text-align: left;
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
   border-radius: 13px;
   margin-top: 8px;
   cursor: pointer;
@@ -117,11 +101,7 @@ label {
   font-size: 19px;
 }
 
-.result small {
-  color: #777777;
-}
-
-/* ===== 已選擇車輛 ===== */
+.result small { color: #777; }
 
 .chosen {
   margin-top: 12px;
@@ -130,8 +110,6 @@ label {
   border-radius: 13px;
   text-align: left;
 }
-
-/* ===== 異常 / 維修警告 ===== */
 
 .warning {
   margin-top: 14px;
@@ -157,7 +135,7 @@ label {
   min-height: 40px;
   margin-top: 8px;
   padding: 8px 12px;
-  background: #ffffff;
+  background: #fff;
   border: 1px solid #b5121b;
   color: #b5121b;
   border-radius: 10px;
@@ -165,28 +143,20 @@ label {
   cursor: pointer;
 }
 
-/* ===== 輪胎 / 機車功能 ===== */
-
 .check {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
-
   padding: 14px 0;
-  border-bottom: 1px solid #eeeeee;
-
+  border-bottom: 1px solid #eee;
   text-align: left;
   font-size: 18px;
 }
 
-.check:last-child {
-  border-bottom: none;
-}
+.check:last-child { border-bottom: none; }
 
-.check span {
-  font-weight: 500;
-}
+.check span { font-weight: 500; }
 
 .check select {
   width: 145px;
@@ -194,25 +164,18 @@ label {
   font-size: 16px;
 }
 
-/* ===== 行車紀錄器按鈕 ===== */
-
 .secondary {
   width: 100%;
   min-height: 52px;
   margin-top: 10px;
-
-  background: #ffffff;
+  background: #fff;
   color: #171717;
-
-  border: 2px solid #222222;
+  border: 2px solid #222;
   border-radius: 13px;
-
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
-
-/* ===== Checkbox ===== */
 
 .checkline {
   display: flex;
@@ -227,88 +190,67 @@ label {
   min-height: auto;
 }
 
-/* =========================================
-   加油卡
-   ========================================= */
-
+/* 加油卡：四個直排大按鈕 */
 .fuel-card-options {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-  margin-top: 20px;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+  width: 100% !important;
+  margin: 20px 0 0 !important;
 }
 
-.fuel-card-options .fuel-option {
-  display: block;
-  width: 100%;
-  min-height: 82px;
-
-  margin: 0;
-  padding: 15px 20px;
-
-  background: #ffffff;
-  color: #171717;
-
-  border: 3px solid #d9d2c6;
-  border-radius: 20px;
-
-  font-size: 20px;
-  font-weight: 700;
-
-  text-align: center;
-  cursor: pointer;
-
-  transition: 0.15s ease;
+.fuel-card-options button.fuel-option {
+  display: block !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  min-height: 82px !important;
+  margin: 0 !important;
+  padding: 15px 20px !important;
+  background: #fff !important;
+  color: #171717 !important;
+  border: 3px solid #d9d2c6 !important;
+  border-radius: 20px !important;
+  font-family: inherit !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
-.fuel-card-options .fuel-option:hover {
-  border-color: #d71920;
+.fuel-card-options button.fuel-option:hover {
+  border-color: #d71920 !important;
 }
 
-/* 被選擇的加油卡選項 */
-
-.fuel-card-options .fuel-option.selected-option {
-  background: #fff1f1;
-  border-color: #d71920;
-  color: #d71920;
+.fuel-card-options button.fuel-option.selected-option {
+  background: #fff1f1 !important;
+  border-color: #d71920 !important;
+  color: #d71920 !important;
 }
 
-/* ===== 隱藏欄位 ===== */
-
-.hidden {
-  display: none !important;
-}
-
-/* ===== 最後送出按鈕 ===== */
+.hidden { display: none !important; }
 
 .submit {
   width: 100%;
   min-height: 62px;
-
   border: 0;
   border-radius: 16px;
-
   background: #d71920;
-  color: #ffffff;
-
+  color: #fff;
   font-size: 20px;
   font-weight: 800;
-
   margin-top: 18px;
   cursor: pointer;
 }
 
-.submit:hover {
-  background: #bd1017;
-}
+.submit:hover { background: #bd1017; }
 
 .submit:disabled {
-  opacity: 0.55;
+  opacity: .55;
   cursor: not-allowed;
 }
-
-/* ===== 系統訊息 ===== */
 
 .msg {
   padding: 16px;
@@ -326,45 +268,18 @@ label {
   color: #a61b1b;
 }
 
-/* =========================================
-   手機版
-   ========================================= */
-
 @media (max-width: 520px) {
+  .wrap { padding: 14px 12px 50px; }
+  .card { padding: 24px 18px; }
+  input, select, textarea { font-size: 16px; }
+  .two { grid-template-columns: 1fr; }
+  .check { gap: 10px; }
+  .check span { max-width: 58%; }
+  .check select { width: 130px; }
 
-  .wrap {
-    padding: 14px 12px 50px;
-  }
-
-  .card {
-    padding: 24px 18px;
-  }
-
-  input,
-  select,
-  textarea {
-    font-size: 16px;
-  }
-
-  .two {
-    grid-template-columns: 1fr;
-  }
-
-  .check {
-    gap: 10px;
-  }
-
-  .check span {
-    max-width: 58%;
-  }
-
-  .check select {
-    width: 130px;
-  }
-
-  .fuel-card-options .fuel-option {
-    min-height: 72px;
-    font-size: 18px;
-    border-radius: 17px;
+  .fuel-card-options button.fuel-option {
+    min-height: 72px !important;
+    font-size: 18px !important;
+    border-radius: 17px !important;
   }
 }
