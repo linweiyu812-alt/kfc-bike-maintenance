@@ -25,7 +25,30 @@
   </div>
 </section>
 <section class="card"><b>07・機車功能</b><h2>安全功能檢查</h2><div id="checks"></div><textarea id="otherIssue" rows="3" placeholder="請輸入其他異常內容，例如：後照鏡鬆動" class="hidden"></textarea></section>
-<section class="card"><b>08・外送設備</b><h2>設備數量</h2><div class="two"><label>杯架<input id="cups" type="number" value="0" min="0"></label><label>外送袋<input id="bags" type="number" value="0" min="0"></label></div></section>
+<section class="card">
+  <b>08・加油卡</b>
+  <h2>加油卡確認</h2>
+
+  <div class="fuel-card-options">
+    <button type="button" class="fuel-option" data-value="received">
+      已領加油卡
+    </button>
+
+    <button type="button" class="fuel-option" data-value="not_received">
+      未領加油卡
+    </button>
+
+    <button type="button" class="fuel-option" data-value="lost">
+      加油卡遺失
+    </button>
+
+    <button type="button" class="fuel-option" data-value="electric_na">
+      電車無加油卡
+    </button>
+  </div>
+
+  <input type="hidden" id="fuelCardStatus">
+</section>
 <section class="card"><b>09・汽油 / 電量</b><h2 id="energyTitle">汽油 / 電量 %</h2><input id="energy" type="number" min="0" max="100" placeholder="例如 80"></section>
 <section class="card"><b>10・異常 / 備註</b><h2>備註</h2><textarea id="note" rows="4" placeholder="其他補充說明"></textarea></section>
 <button id="submit" class="submit">確認並送出</button><div id="msg"></div></form></main>
