@@ -22,4 +22,27 @@
 <label>5. 回報人<input id="reportedBy" placeholder="姓名" required></label>
 <button class="btn" type="submit">送出故障回報</button><p id="msg"></p>
 </form></section></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./battery-report.js?v=16.3"></script></body></html>
+<script>
+(function(){
+  const map={TP01:"I997-",NT01:"I994-",TY01:"I995-",TC01:"I996-",TN01:"I998-",KH01:"I981-"};
+  function sync(){
+    const c=document.getElementById("center"), pre=document.getElementById("prefix"),
+          suf=document.getElementById("suffix"), rs=document.getElementById("restaurantSearch"),
+          pv=document.getElementById("batteryPreview");
+    if(!c||!pre)return;
+    const prefix=(c.options[c.selectedIndex]&&c.options[c.selectedIndex].dataset.prefix)||map[c.value]||"";
+    pre.textContent=prefix||"請先選中心";
+    if(suf)suf.disabled=!prefix;
+    if(rs)rs.disabled=!prefix;
+    const n=suf?suf.value.replace(/\D/g,""):"";
+    if(pv)pv.textContent="本次回報電池："+(prefix&&n?prefix+n.padStart(3,"0"):"-");
+  }
+  window.syncBatteryCenter=sync;
+  document.addEventListener("change",e=>{if(e.target&&e.target.id==="center")sync()});
+  document.addEventListener("input",e=>{if(e.target&&e.target.id==="suffix"){e.target.value=e.target.value.replace(/\D/g,"").slice(0,6);sync()}});
+  document.addEventListener("DOMContentLoaded",sync);
+  window.addEventListener("pageshow",sync);
+  setTimeout(sync,0);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./battery-report.js?v=16.4"></script></body></html>

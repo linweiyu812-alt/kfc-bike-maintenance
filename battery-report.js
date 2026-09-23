@@ -19,7 +19,7 @@ function syncCenter(resetRestaurant=true){
  $("restaurantSearch").disabled=!prefix;
  preview();
 }
-$("center").addEventListener("change",()=>syncCenter(true));
+$("center").addEventListener("change",()=>{syncCenter(true);if(window.syncBatteryCenter)window.syncBatteryCenter();});
 $("suffix").oninput=e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,6);preview()};
 $("suffix").onblur=e=>{if(e.target.value)e.target.value=e.target.value.padStart(3,"0");preview()};
 $("restaurantSearch").oninput=()=>{restaurant=null;$("restaurantSelected").textContent="";clearTimeout(timer);timer=setTimeout(searchRestaurant,180)};
