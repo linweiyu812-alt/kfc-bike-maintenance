@@ -12,7 +12,8 @@ function syncCenter(resetRestaurant=true){
  if(resetRestaurant){
    restaurant=null;$("restaurantSearch").value="";$("restaurantSelected").textContent="";$("restaurantResults").innerHTML="";
  }
- const prefix=centerMap[c]||"";
+ const selected=$("center").options[$("center").selectedIndex];
+ const prefix=(selected?.dataset?.prefix)||centerMap[c]||"";
  $("prefix").textContent=prefix||"請先選中心";
  $("suffix").disabled=!prefix;
  $("restaurantSearch").disabled=!prefix;
