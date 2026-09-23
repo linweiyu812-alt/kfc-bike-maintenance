@@ -24,8 +24,14 @@ async function normalizeBatteryCode(raw){
       if(/^[A-Za-z]\d{3,}-\d+$/i.test(v))return v.toUpperCase();
     }
   }catch(e){}
-  // Existing short QR URLs: resolve from alias master maintained in DB
-  if(/^https?:\/\//i.test(raw)){
+  // Existing short QR URLs: automatically expand on Supabase Edge Function.
+  if(/^https?:\/\/(www\.)?is\.gd\//i.test(raw)){
+    try{
+      $("scanHelp").textContent="正在解析電池 QR Code…";
+      const {data,error}=await sb.functions.invoke("resolve-battery-qr",{body:{url:raw}});
+      if(!error && data?.battery_code)return String(data.battery_code).trim().toUpperCase();
+    }catch(e){}
+    // Keep DB alias as fallback for any previously registered QR.
     const {data,error}=await sb.rpc("resolve_battery_qr",{p_qr_value:raw});
     if(!error&&data)return String(data).toUpperCase();
   }
