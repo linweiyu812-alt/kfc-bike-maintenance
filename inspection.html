@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>KFC 外送機車每日檢查</title>
-  <link rel="stylesheet" href="./inspection.css?v=10">
+  <link rel="stylesheet" href="./inspection.css?v=12">
 </head>
 <body>
 <main class="wrap">
@@ -13,9 +13,7 @@
 <section class="card"><b>01・領車人</b><h2>領車人</h2><input id="inspector" required placeholder="請輸入姓名"></section>
 <section class="card"><b>02・領車中心</b><h2>領車中心</h2><select id="center" required><option>載入中...</option></select></section>
 <section class="card"><b>03・車輛</b><h2>搜尋車牌</h2><input id="search" disabled autocomplete="off" placeholder="輸入部分車牌，例如 5227"><div id="results"></div><div id="selected"></div><div id="bikeWarning"></div></section>
-<section class="card"><b>04・行車紀錄器</b><h2>行車紀錄器號碼</h2><input id="dashcam" placeholder="請輸入紀錄器號碼"><button type="button" class="secondary" id="checkDashcam">檢查紀錄器狀態</button><div id="dashcamWarning"></div>
-<h2>領取餐廳</h2><input id="restaurantSearch" disabled autocomplete="off" placeholder="先選領車中心，再輸入餐廳關鍵字"><div id="restaurantResults"></div><div id="restaurantSelected"></div>
-<label class="checkline"><input type="checkbox" id="dashcamAbnormal"> 本次發現行車紀錄器異常</label><textarea id="dashcamIssue" rows="3" placeholder="請輸入行車紀錄器異常內容" class="hidden"></textarea></section>
+<section class="card"><b>04・行車紀錄器</b><h2>搜尋行車紀錄器</h2><input id="dashcamSearch" disabled autocomplete="off" placeholder="先選領車中心，再輸入紀錄器編號"><div id="dashcamResults"></div><div id="dashcamSelected"></div><button type="button" class="secondary" id="checkDashcam">檢查紀錄器狀態</button><div id="dashcamWarning"></div><label class="checkline"><input type="checkbox" id="dashcamAbnormal"> 本次發現行車紀錄器異常</label><textarea id="dashcamIssue" rows="3" placeholder="請輸入行車紀錄器異常內容" class="hidden"></textarea></section>
 <section class="card"><b>05・目前公里數</b><h2>公里數</h2><input id="mileage" type="number" min="0" required placeholder="請輸入目前公里數"></section>
 <section class="card"><b>06・輪胎</b><h2>輪胎檢查</h2>
 <div class="check"><span>輪胎胎壓值 33 PSI</span><select id="tire_pressure_ok"><option value="true">正常</option><option value="false">異常</option></select></div>
@@ -35,5 +33,5 @@
 </form></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js?v=10"></script>
-<script src="./inspection.js?v=10"></script>
+<script src="./inspection.js?v=12"></script>
 </body></html>
