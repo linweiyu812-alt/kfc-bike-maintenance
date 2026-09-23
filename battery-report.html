@@ -1,9 +1,22 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>電池故障回報</title><link rel="stylesheet" href="./admin.css?v=16"></head>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>電池故障回報</title><link rel="stylesheet" href="./admin.css?v=16"><style>
+.battery-form{display:grid;gap:20px;max-width:720px}
+.battery-form label{display:grid;gap:8px;font-weight:700;font-size:16px}
+.battery-form select,.battery-form input,.battery-form textarea{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #d7d0c5;border-radius:10px;background:#fff;font:inherit}
+.battery-form select:focus,.battery-form input:focus,.battery-form textarea:focus{outline:2px solid #e31b23;outline-offset:1px}
+.battery-code-row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.battery-prefix{min-width:90px;padding:12px 14px;border-radius:10px;background:#f3efe7;font-size:20px}
+.battery-preview{padding:14px 16px;border-radius:10px;background:#f7f4ee;font-weight:700}
+.battery-form .btn{justify-self:start}
+#restaurantResults{position:relative}
+#restaurantResults .result{padding:10px 12px;border:1px solid #e4ded4;background:#fff;cursor:pointer}
+#restaurantResults .result small{display:block;color:#777}
+@media(max-width:640px){.wrap.narrow{padding:16px}.topbar{align-items:flex-start}.battery-code-row{grid-template-columns:105px 1fr}.battery-form .btn{width:100%}}
+</style></head>
 <body><main class="wrap narrow"><div class="topbar"><div><h1>電池故障回報</h1><p class="muted">選擇外送中心後，只需輸入電池後續編號。</p></div><a class="btn light" href="./index.html">返回主選單</a></div>
-<section class="panel"><form id="form">
+<section class="panel"><form id="form" class="battery-form">
 <label>1. 外送中心<select id="center" required><option value="">請選擇</option><option value="TP01" data-prefix="I997-">台北外送中心</option><option value="NT01" data-prefix="I994-">新北外送中心</option><option value="TY01" data-prefix="I995-">桃園外送中心</option><option value="TC01" data-prefix="I996-">台中外送中心</option><option value="TN01" data-prefix="I998-">台南外送中心</option><option value="KH01" data-prefix="I981-">高雄外送中心</option></select></label>
-<label>2. 電池編號<div style="display:flex;gap:8px;align-items:center"><b id="prefix" style="font-size:20px;white-space:nowrap">請先選中心</b><input id="suffix" inputmode="numeric" pattern="[0-9]*" placeholder="例如 3" disabled required></div><small class="muted">輸入 3 會自動轉成 003。</small></label>
-<div class="notice" id="batteryPreview">本次回報電池：-</div>
+<label>2. 電池編號<div class="battery-code-row"><b id="prefix" class="battery-prefix">請先選中心</b><input id="suffix" inputmode="numeric" pattern="[0-9]*" placeholder="例如 3" disabled required></div><small class="muted">輸入 3 會自動轉成 003。</small></label>
+<div class="battery-preview" id="batteryPreview">本次回報電池：-</div>
 <label>3. 放置餐廳<input id="restaurantSearch" placeholder="輸入餐廳名稱或店號" disabled autocomplete="off" required><div id="restaurantResults"></div><small id="restaurantSelected"></small></label>
 <label>4. 異常說明<textarea id="issue" rows="3" placeholder="例如：無法充電、續航異常、外觀破損" required></textarea></label>
 <label>5. 回報人<input id="reportedBy" placeholder="姓名" required></label>
