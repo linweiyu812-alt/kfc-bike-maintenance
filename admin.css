@@ -3,12 +3,3 @@
 .account-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.account-card{border:1px solid #e5dfd5;border-radius:14px;padding:14px}
 .account-card h3{margin:0 0 8px}.small{font-size:13px}.inputwide{width:100%;min-height:44px;border:1px solid #d4ccc0;border-radius:10px;padding:8px 12px}
 @media(max-width:800px){.account-grid{grid-template-columns:1fr}}
-
-/* V12.1 bike management */
-.search-picker{position:relative;min-width:260px}
-.search-results{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #d4ccc0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:280px;overflow:auto}
-.search-result{display:flex;justify-content:space-between;gap:12px;padding:11px 12px;cursor:pointer;border-bottom:1px solid #eee}
-.search-result:last-child{border-bottom:0}.search-result:hover{background:#faf3ea}
-.search-result small{color:#777}.selected-text{display:block;margin-top:5px;color:#176b38;font-weight:800}
-.filter-panel{background:#faf8f4;border-radius:14px;padding:14px;margin-bottom:14px}
-.filter-count{color:#666;font-size:14px;margin-top:10px}
