@@ -1,12 +1,139 @@
-const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);let profile,editing=null,raw=[],restaurant=null,rtimer;
-async function init(){const {data:{session}}=await sb.auth.getSession();if(!session)return location.replace("./login.html");const {data:p,error}=await sb.rpc("my_admin_profile");if(error||!p?.length)return location.replace("./login.html");profile=p[0];$("who").textContent=profile.role==="op"?"OP｜全市場":profile.center_name;const {data:cs}=await sb.rpc("admin_allowed_centers");$("center").innerHTML=(cs||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join("");if(profile.role!=="op"){$("center").value=profile.center_id;$("center").disabled=true}load()}
-$("center").onchange=()=>{restaurant=null;$("restaurantSearch").value="";$("restaurantResults").innerHTML="";$("restaurantSelected").textContent=""};
-$("restaurantSearch").oninput=()=>{restaurant=null;$("restaurantSelected").textContent="";clearTimeout(rtimer);rtimer=setTimeout(searchRestaurant,200)};
-async function searchRestaurant(){const q=$("restaurantSearch").value.trim();if(!q||!$("center").value){$("restaurantResults").innerHTML="";return}const {data,error}=await sb.rpc("secure_admin_restaurant_search",{p_center_id:$("center").value,p_keyword:q});if(error){$("restaurantResults").innerHTML=`<div class="result">搜尋失敗：${error.message}</div>`;return}$("restaurantResults").innerHTML=(data||[]).map((r,i)=>`<div class="result" data-r="${i}"><b>${r.name}</b><small>${r.store_no}</small></div>`).join("")||'<div class="result">找不到餐廳</div>';document.querySelectorAll("[data-r]").forEach(e=>e.onclick=()=>{restaurant=data[+e.dataset.r];$("restaurantSearch").value=restaurant.name;$("restaurantResults").innerHTML="";$("restaurantSelected").textContent=`✓ ${restaurant.name}｜${restaurant.store_no}`})}
-async function load(){const {data,error}=await sb.rpc("secure_admin_bike_asset_list_v12",{p_center_id:profile.role==="op"?null:profile.center_id});if(error)return $("msg").textContent="載入失敗："+error.message;raw=data||[];$("total").textContent=raw.length;$("oil").textContent=raw.filter(x=>(x.vehicle_type||"").includes("油")).length;$("electric").textContent=raw.filter(x=>(x.vehicle_type||"").includes("電")).length;render()}
-function render(){const q=$("q").value.trim().toLowerCase();const a=raw.filter(x=>!q||(x.plate||"").toLowerCase().includes(q)||(x.restaurant_name||"").toLowerCase().includes(q));$("rows").innerHTML=a.map(x=>`<tr><td>${x.center_name}</td><td><b>${x.plate}</b></td><td>${x.vehicle_type||"-"}</td><td>${x.restaurant_name||"-"}</td><td>${x.acquired_date||"-"}</td><td><button class="btn light" onclick="editBike('${x.id}')">修改</button> <button class="btn danger-btn" onclick="delBike('${x.id}','${x.plate.replaceAll("'","")}')">刪除</button></td></tr>`).join("")}
-window.editBike=id=>{const x=raw.find(v=>v.id===id);editing=id;$("center").value=x.center_id;$("plate").value=x.plate;$("type").value=x.vehicle_type||"油車";$("acquired").value=x.acquired_date||"";restaurant=x.restaurant_id?{id:x.restaurant_id,name:x.restaurant_name,store_no:x.restaurant_store_no}:null;$("restaurantSearch").value=x.restaurant_name||"";$("restaurantSelected").textContent=restaurant?`✓ ${x.restaurant_name}｜${x.restaurant_store_no||""}`:"";$("save").textContent="儲存修改";$("cancel").style.display="inline-block";scrollTo({top:0,behavior:"smooth"})};
-window.delBike=async(id,plate)=>{if(!confirm(`確定刪除機車「${plate}」？\n若仍有待維修/維修中案件，系統會阻止刪除。`))return;const {data,error}=await sb.rpc("secure_admin_delete_bike_asset",{p_bike_id:id});if(error)return alert(error.message);if(!data)return alert("無法刪除：可能仍有未完成維修");load()};
-$("save").onclick=async()=>{const plate=$("plate").value.trim();if(!plate)return alert("請輸入車牌");if(!restaurant)return alert("請搜尋並選擇放置餐廳");const {data,error}=await sb.rpc("secure_admin_save_bike_asset_v12",{p_bike_id:editing,p_center_id:$("center").value,p_restaurant_id:restaurant.id,p_plate:plate,p_vehicle_type:$("type").value,p_acquired_date:$("acquired").value||null});if(error)return alert(error.message);if(!data)return alert("無權限或資料未儲存");reset();load()};
-function reset(){editing=null;restaurant=null;$("plate").value="";$("acquired").value="";$("restaurantSearch").value="";$("restaurantResults").innerHTML="";$("restaurantSelected").textContent="";$("save").textContent="新增機車";$("cancel").style.display="none"}
-$("cancel").onclick=reset;$("refresh").onclick=load;$("q").oninput=render;$("logout").onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.replace("./login.html")};init();
+const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);
+let profile,editing=null,raw=[],restaurant=null,rtimer,centers=[];
+
+function vehicleKind(v){
+  const s=String(v||"").trim().toLowerCase();
+  if(s.includes("electric")||s.includes("電")) return "electric";
+  if(s.includes("oil")||s.includes("gas")||s.includes("fuel")||s.includes("油")) return "oil";
+  return "other";
+}
+function vehicleLabel(v){
+  const k=vehicleKind(v);
+  return k==="electric"?"電動車":k==="oil"?"油車":(v||"-");
+}
+function hideRestaurantResults(){ $("restaurantResults").style.display="none"; $("restaurantResults").innerHTML=""; }
+
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return location.replace("./login.html");
+  const {data:p,error}=await sb.rpc("my_admin_profile");
+  if(error||!p?.length)return location.replace("./login.html");
+  profile=p[0]; $("who").textContent=profile.role==="op"?"OP｜全市場":profile.center_name;
+  const {data:cs}=await sb.rpc("admin_allowed_centers"); centers=cs||[];
+  $("center").innerHTML=centers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  $("filterCenter").innerHTML='<option value="">全部中心</option>'+centers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  if(profile.role!=="op"){
+    $("center").value=profile.center_id; $("center").disabled=true;
+    $("filterCenter").value=profile.center_id; $("filterCenter").disabled=true;
+  }
+  load();
+}
+
+$("center").onchange=()=>{restaurant=null;$("restaurantSearch").value="";$("restaurantSelected").textContent="";hideRestaurantResults()};
+$("restaurantSearch").onfocus=()=>{ if($("center").value) searchRestaurant(); };
+$("restaurantSearch").oninput=()=>{restaurant=null;$("restaurantSelected").textContent="";clearTimeout(rtimer);rtimer=setTimeout(searchRestaurant,180)};
+
+async function searchRestaurant(){
+  const q=$("restaurantSearch").value.trim(), centerId=$("center").value;
+  if(!centerId){hideRestaurantResults();return}
+  const keyword=q || "";
+  const {data,error}=await sb.rpc("secure_admin_restaurant_search",{p_center_id:centerId,p_keyword:keyword});
+  const box=$("restaurantResults"); box.style.display="block";
+  if(error){box.innerHTML=`<div class="search-result">搜尋失敗：${error.message}</div>`;return}
+  let list=data||[];
+  // 使用者輸入中心名稱（例如「高雄」）時，也顯示該中心餐廳，避免看起來搜尋不到
+  if(!list.length && q){
+    const center=centers.find(c=>c.id===centerId);
+    if(center && center.name.includes(q.replace("外送中心","").trim())){
+      const retry=await sb.rpc("secure_admin_restaurant_search",{p_center_id:centerId,p_keyword:""});
+      list=retry.data||[];
+    }
+  }
+  box.innerHTML=list.length?list.map((r,i)=>`<div class="search-result" data-r="${i}"><b>${r.name}</b><small>${r.store_no||""}</small></div>`).join(""):'<div class="search-result">找不到餐廳</div>';
+  box.querySelectorAll("[data-r]").forEach(e=>e.onclick=()=>{
+    restaurant=list[+e.dataset.r];
+    $("restaurantSearch").value=restaurant.name;
+    $("restaurantSelected").textContent=`✓ 已選擇：${restaurant.name}${restaurant.store_no?`｜${restaurant.store_no}`:""}`;
+    hideRestaurantResults();
+  });
+}
+
+async function load(){
+  const {data,error}=await sb.rpc("secure_admin_bike_asset_list_v12",{p_center_id:profile.role==="op"?null:profile.center_id});
+  if(error)return $("msg").textContent="載入失敗："+error.message;
+  raw=data||[]; render();
+}
+
+function filteredRows(){
+  const q=$("q").value.trim().toLowerCase();
+  const fc=$("filterCenter").value;
+  const fr=$("filterRestaurant").value.trim().toLowerCase();
+  const ft=$("filterType").value;
+  return raw.filter(x=>
+    (!fc||x.center_id===fc) &&
+    (!fr||(x.restaurant_name||"").toLowerCase().includes(fr)||(x.restaurant_store_no||"").toLowerCase().includes(fr)) &&
+    (!ft||vehicleKind(x.vehicle_type)===ft) &&
+    (!q||(x.plate||"").toLowerCase().includes(q))
+  );
+}
+
+function render(){
+  const a=filteredRows();
+  $("total").textContent=a.length;
+  $("oil").textContent=a.filter(x=>vehicleKind(x.vehicle_type)==="oil").length;
+  $("electric").textContent=a.filter(x=>vehicleKind(x.vehicle_type)==="electric").length;
+  $("filterCount").textContent=`目前顯示 ${a.length} / ${raw.length} 台機車`;
+  $("rows").innerHTML=a.map(x=>`<tr>
+    <td>${x.center_name}</td><td><b>${x.plate}</b></td><td>${vehicleLabel(x.vehicle_type)}</td>
+    <td>${x.restaurant_name||"-"}</td><td>${x.acquired_date||"-"}</td>
+    <td><button class="btn light" onclick="editBike('${x.id}')">修改</button> <button class="btn danger-btn" onclick="delBike('${x.id}','${String(x.plate).replaceAll("'","")}')">刪除</button></td>
+  </tr>`).join("");
+}
+
+window.editBike=id=>{
+  const x=raw.find(v=>v.id===id); editing=id;
+  $("center").value=x.center_id; $("plate").value=x.plate;
+  $("type").value=vehicleKind(x.vehicle_type)==="electric"?"電車":"油車";
+  $("acquired").value=x.acquired_date||"";
+  restaurant=x.restaurant_id?{id:x.restaurant_id,name:x.restaurant_name,store_no:x.restaurant_store_no}:null;
+  $("restaurantSearch").value=x.restaurant_name||"";
+  $("restaurantSelected").textContent=restaurant?`✓ 已選擇：${x.restaurant_name}${x.restaurant_store_no?`｜${x.restaurant_store_no}`:""}`:"請搜尋並選擇放置餐廳";
+  hideRestaurantResults();
+  $("save").textContent="儲存修改"; $("cancel").style.display="inline-block";
+  scrollTo({top:0,behavior:"smooth"});
+};
+
+window.delBike=async(id,plate)=>{
+  if(!confirm(`確定刪除機車「${plate}」？\n若仍有待維修/維修中案件，系統會阻止刪除。`))return;
+  const {data,error}=await sb.rpc("secure_admin_delete_bike_asset",{p_bike_id:id});
+  if(error)return alert(error.message); if(!data)return alert("無法刪除：可能仍有未完成維修"); load();
+};
+
+$("save").onclick=async()=>{
+  const plate=$("plate").value.trim();
+  if(!plate)return alert("請輸入車牌");
+  if(!restaurant)return alert("請從搜尋結果中選擇一間放置餐廳");
+  const {data,error}=await sb.rpc("secure_admin_save_bike_asset_v12",{
+    p_bike_id:editing,p_center_id:$("center").value,p_restaurant_id:restaurant.id,
+    p_plate:plate,p_vehicle_type:$("type").value,p_acquired_date:$("acquired").value||null
+  });
+  if(error)return alert(error.message); if(!data)return alert("無權限或資料未儲存");
+  reset(); load();
+};
+
+function reset(){
+  editing=null;restaurant=null;$("plate").value="";$("acquired").value="";
+  $("restaurantSearch").value="";$("restaurantSelected").textContent="";hideRestaurantResults();
+  $("save").textContent="新增機車";$("cancel").style.display="none";
+}
+$("cancel").onclick=reset;
+$("refresh").onclick=load;
+["q","filterRestaurant"].forEach(id=>$(id).oninput=render);
+["filterCenter","filterType"].forEach(id=>$(id).onchange=render);
+$("clearFilters").onclick=()=>{
+  if(profile.role==="op")$("filterCenter").value="";
+  $("filterRestaurant").value="";$("filterType").value="";$("q").value="";render();
+};
+$("logout").onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.replace("./login.html")};
+document.addEventListener("click",e=>{if(!e.target.closest(".search-picker"))hideRestaurantResults()});
+init();
