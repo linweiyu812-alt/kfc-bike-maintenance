@@ -284,17 +284,13 @@ label {
   }
 }
 
-/* Rider UI fix */
 .home-link{display:inline-block;margin-bottom:16px;color:#333;text-decoration:none;font-weight:800}
 .action-row{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:12px}
-.action-row .submit{margin:0}
-.home-button{display:flex;align-items:center;justify-content:center;text-decoration:none;box-sizing:border-box}
+.action-row .submit{margin:0}.home-button{display:flex;align-items:center;justify-content:center;text-decoration:none;box-sizing:border-box}
 .step-help{color:#666;line-height:1.6;margin:4px 0 16px}
-.manual-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:#888}
-.manual-divider:before,.manual-divider:after{content:"";height:1px;background:#ddd;flex:1}
+.manual-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:#888}.manual-divider:before,.manual-divider:after{content:"";height:1px;background:#ddd;flex:1}
 #restaurantResults .result{display:flex;justify-content:space-between;gap:12px;padding:12px;border:1px solid #e4ddd4;border-top:0;background:#fff;cursor:pointer}
-#restaurantResults .result:first-child{border-top:1px solid #e4ddd4;border-radius:10px 10px 0 0}
-#restaurantResults .result:last-child{border-radius:0 0 10px 10px}
-#restaurantResults .result small{color:#777}
 .chosen{margin-top:8px;color:#176b38;font-weight:800}
+.line-warning{background:#fff4f2;border:1px solid #e21b23;border-radius:16px;padding:16px;margin:0 0 16px;line-height:1.55}
+.line-warning b{color:#d71920;font-size:18px}.line-warning p{margin:8px 0 0;color:#444}
 @media(max-width:520px){.action-row{grid-template-columns:1fr}}

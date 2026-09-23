@@ -1,3 +1,14 @@
+
+function detectInAppBrowser(){
+  const ua=navigator.userAgent||"";
+  const isLine=/Line\//i.test(ua)||/\bLIFF\b/i.test(ua);
+  if(isLine){
+    const w=document.getElementById("lineWarning");
+    if(w)w.style.display="block";
+    const h=document.getElementById("scanHelp");
+    if(h)h.textContent="若相機無法啟動，請改用 Safari / Chrome 開啟此頁，或手動輸入電池編號。";
+  }
+}
 const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);
 let restaurant=null,timer,stream=null,confirmedCode="",scanRunning=false;
 async function init(){const {data,error}=await sb.from("centers").select("id,code,name").eq("active",true);if(error)return;$("center").innerHTML='<option value="">請選擇外送中心</option>'+[...(data||[])].sort((a,b)=>({TP01:1,NT01:2,TY01:3,TC01:4,TN01:5,KH01:6}[a.code]||99)-({TP01:1,NT01:2,TY01:3,TC01:4,TN01:5,KH01:6}[b.code]||99)).map(c=>`<option value="${c.id}">${c.name}</option>`).join("")}
@@ -13,4 +24,4 @@ $("center").onchange=()=>{restaurant=null;$("restaurantSearch").value="";$("rest
 $("restaurantSearch").oninput=()=>{restaurant=null;$("restaurantSelected").innerHTML="";clearTimeout(timer);timer=setTimeout(searchR,180)};
 async function searchR(){const q=$("restaurantSearch").value.trim();if(!q||!$("center").value)return;const {data,error}=await sb.rpc("public_restaurant_search",{p_center_id:$("center").value,p_keyword:q});if(error)return;$("restaurantResults").innerHTML=(data||[]).map((r,i)=>`<div class="result" data-i="${i}"><b>${r.name}</b><small>${r.store_no||""}</small></div>`).join("")||'<div class="result">找不到餐廳</div>';document.querySelectorAll("[data-i]").forEach(e=>e.onclick=()=>{restaurant=data[+e.dataset.i];$("restaurantSearch").value=restaurant.name;$("restaurantResults").innerHTML="";$("restaurantSelected").className="chosen";$("restaurantSelected").textContent=`✓ 已選擇：${restaurant.name}`})}
 $("form").onsubmit=async e=>{e.preventDefault();if(!confirmedCode)return alert("請先掃描電池 QR Code");if(!restaurant)return alert("請選擇放置餐廳");const {error}=await sb.rpc("report_battery_fault",{p_restaurant_id:restaurant.id,p_battery_code:confirmedCode,p_reported_by:$("reporter").value.trim(),p_issue_description:$("issue").value.trim()});if(error)return $("msg").textContent="送出失敗："+error.message;$("msg").textContent="✓ 電池故障已回報";setTimeout(()=>location.href="./index.html",900)};
-addEventListener("beforeunload",stopCamera);init();
+addEventListener("beforeunload",stopCamera);detectInAppBrowser();init();
