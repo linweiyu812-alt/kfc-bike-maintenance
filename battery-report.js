@@ -12,7 +12,40 @@ function detectInAppBrowser(){
 const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);
 let restaurant=null,timer,stream=null,confirmedCode="",scanRunning=false;
 async function init(){const {data,error}=await sb.from("centers").select("id,code,name").eq("active",true);if(error)return;$("center").innerHTML='<option value="">請選擇外送中心</option>'+[...(data||[])].sort((a,b)=>({TP01:1,NT01:2,TY01:3,TC01:4,TN01:5,KH01:6}[a.code]||99)-({TP01:1,NT01:2,TY01:3,TC01:4,TN01:5,KH01:6}[b.code]||99)).map(c=>`<option value="${c.id}">${c.name}</option>`).join("")}
-function proceed(code){code=String(code||"").trim();if(!code)return alert("請先掃描 QR Code 或輸入電池編號");confirmedCode=code;$("batteryCode").value=code;$("batteryDisplay").textContent=`電池編號：${code}`;stopCamera();$("scanStep").classList.add("hidden");$("form").classList.remove("hidden");scrollTo({top:0,behavior:"smooth"})}
+async function normalizeBatteryCode(raw){
+  raw=String(raw||"").trim();
+  if(!raw)return "";
+  // Direct battery code
+  if(/^[A-Za-z]\d{3,}-\d+$/i.test(raw))return raw.toUpperCase();
+  // Microsoft Forms prefill URL: find value such as I981-001
+  try{
+    const u=new URL(raw);
+    for(const [,v] of u.searchParams){
+      if(/^[A-Za-z]\d{3,}-\d+$/i.test(v))return v.toUpperCase();
+    }
+  }catch(e){}
+  // Existing short QR URLs: resolve from alias master maintained in DB
+  if(/^https?:\/\//i.test(raw)){
+    const {data,error}=await sb.rpc("resolve_battery_qr",{p_qr_value:raw});
+    if(!error&&data)return String(data).toUpperCase();
+  }
+  return "";
+}
+async function proceed(raw){
+  const code=await normalizeBatteryCode(raw);
+  if(!code){
+    $("scanHelp").textContent="此 QR Code 尚未對應電池編號。請手動輸入電池編號；管理者可在後台建立短網址對應。";
+    $("batteryCode").value="";
+    return;
+  }
+  confirmedCode=code;
+  $("batteryCode").value=code;
+  $("batteryDisplay").textContent=`電池編號：${code}`;
+  stopCamera();
+  $("scanStep").classList.add("hidden");
+  $("form").classList.remove("hidden");
+  scrollTo({top:0,behavior:"smooth"});
+}
 $("confirmCode").onclick=()=>proceed($("batteryCode").value);
 $("changeBattery").onclick=()=>{confirmedCode="";$("form").classList.add("hidden");$("scanStep").classList.remove("hidden");$("msg").textContent="";scrollTo({top:0,behavior:"smooth"})};
 $("scan").onclick=startCamera;$("stopScan").onclick=stopCamera;
