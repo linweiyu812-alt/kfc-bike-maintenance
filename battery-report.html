@@ -1,19 +1,12 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>電池故障回報</title><link rel="stylesheet" href="./inspection.css?v=13.2"></head><body>
-<main class="wrap"><header><a class="home-link" href="./index.html">← 返回主選單</a><div class="brand">KFC DELIVERY</div><h1>電池故障回報</h1><p>請先掃描電池 QR Code</p></header>
-<section class="line-warning" id="lineWarning" style="display:none">
-<b>目前使用 LINE 內建瀏覽器</b>
-<p>LINE 內建瀏覽器可能無法使用相機掃描 QR Code。請點右上角選單，選擇「使用 Safari 開啟」或「使用 Chrome 開啟」。</p>
-<p>如果不方便切換瀏覽器，也可以直接使用下方「手動輸入電池編號」。</p>
-</section>
-<section class="card" id="scanStep"><b>01・掃描電池</b><h2>掃描 QR Code</h2><p class="step-help">先掃描電池上的 QR Code，成功後才填寫異常說明與放置餐廳。</p>
-<button type="button" class="submit" id="scan">開啟相機掃描 QR Code</button>
-<div id="cameraBox" style="display:none"><video id="video" playsinline muted style="width:100%;border-radius:14px;margin-top:12px"></video><canvas id="scanCanvas" style="display:none"></canvas><button type="button" class="secondary" id="stopScan">停止掃描</button></div>
-<div id="scanHelp"></div><div class="manual-divider"><span>或</span></div><label>無法掃描時，可手動輸入電池編號</label><div class="row"><input id="batteryCode" autocomplete="off" placeholder="輸入電池 QR Code / 編號"><button type="button" class="secondary" id="confirmCode">確認編號</button></div></section>
-<form id="form" class="hidden"><section class="card"><b>02・電池資料</b><h2 id="batteryDisplay"></h2><button type="button" class="secondary" id="changeBattery">重新掃描 / 更換編號</button></section>
-<section class="card"><b>03・異常說明</b><h2>請描述故障狀況</h2><input id="reporter" placeholder="回報人姓名" required><textarea id="issue" rows="4" placeholder="例如：無法充電、續航力下降、外觀破損..." required></textarea></section>
-<section class="card"><b>04・放置餐廳</b><h2>選擇電池目前放置餐廳</h2><select id="center" required><option value="">請選擇外送中心</option></select><input id="restaurantSearch" autocomplete="off" placeholder="輸入餐廳名稱或店號" required><div id="restaurantResults"></div><div id="restaurantSelected"></div></section>
-<div class="action-row"><a class="secondary home-button" href="./index.html">返回主選單</a><button id="submit" class="submit" type="submit">送出故障回報</button></div><div id="msg"></div></form></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script src="./supabase-config.js?v=final"></script><script src="./battery-report.js?v=13.2"></script></body></html>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>電池故障回報</title><link rel="stylesheet" href="./admin.css?v=16"></head>
+<body><main class="wrap narrow"><div class="topbar"><div><h1>電池故障回報</h1><p class="muted">選擇外送中心後，只需輸入電池後續編號。</p></div><a class="btn light" href="./index.html">返回主選單</a></div>
+<section class="panel"><form id="form">
+<label>1. 外送中心<select id="center" required><option value="">請選擇</option><option value="TP01" data-prefix="I997-">台北外送中心</option><option value="NT01" data-prefix="I994-">新北外送中心</option><option value="TY01" data-prefix="I995-">桃園外送中心</option><option value="TC01" data-prefix="I996-">台中外送中心</option><option value="TN01" data-prefix="I998-">台南外送中心</option><option value="KH01" data-prefix="I981-">高雄外送中心</option></select></label>
+<label>2. 電池編號<div style="display:flex;gap:8px;align-items:center"><b id="prefix" style="font-size:20px;white-space:nowrap">請先選中心</b><input id="suffix" inputmode="numeric" pattern="[0-9]*" placeholder="例如 3" disabled required></div><small class="muted">輸入 3 會自動轉成 003。</small></label>
+<div class="notice" id="batteryPreview">本次回報電池：-</div>
+<label>3. 放置餐廳<input id="restaurantSearch" placeholder="輸入餐廳名稱或店號" disabled autocomplete="off" required><div id="restaurantResults"></div><small id="restaurantSelected"></small></label>
+<label>4. 異常說明<textarea id="issue" rows="3" placeholder="例如：無法充電、續航異常、外觀破損" required></textarea></label>
+<label>5. 回報人<input id="reportedBy" placeholder="姓名" required></label>
+<button class="btn" type="submit">送出故障回報</button><p id="msg"></p>
+</form></section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./battery-report.js?v=16"></script></body></html>

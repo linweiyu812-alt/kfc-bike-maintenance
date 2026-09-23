@@ -1,66 +1,15 @@
-
-function detectInAppBrowser(){
-  const ua=navigator.userAgent||"";
-  const isLine=/Line\//i.test(ua)||/\bLIFF\b/i.test(ua);
-  if(isLine){
-    const w=document.getElementById("lineWarning");
-    if(w)w.style.display="block";
-    const h=document.getElementById("scanHelp");
-    if(h)h.textContent="若相機無法啟動，請改用 Safari / Chrome 開啟此頁，或手動輸入電池編號。";
-  }
-}
 const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);
-let restaurant=null,timer,stream=null,confirmedCode="",scanRunning=false;
-async function init(){const {data,error}=await sb.from("centers").select("id,code,name").eq("active",true);if(error)return;$("center").innerHTML='<option value="">請選擇外送中心</option>'+[...(data||[])].sort((a,b)=>({TP01:1,NT01:2,TY01:3,TC01:4,TN01:5,KH01:6}[a.code]||99)-({TP01:1,NT01:2,TY01:3,TC01:4,TN01:5,KH01:6}[b.code]||99)).map(c=>`<option value="${c.id}">${c.name}</option>`).join("")}
-async function normalizeBatteryCode(raw){
-  raw=String(raw||"").trim();
-  if(!raw)return "";
-  // Direct battery code
-  if(/^[A-Za-z]\d{3,}-\d+$/i.test(raw))return raw.toUpperCase();
-  // Microsoft Forms prefill URL: find value such as I981-001
-  try{
-    const u=new URL(raw);
-    for(const [,v] of u.searchParams){
-      if(/^[A-Za-z]\d{3,}-\d+$/i.test(v))return v.toUpperCase();
-    }
-  }catch(e){}
-  // Existing short QR URLs: automatically expand on Supabase Edge Function.
-  if(/^https?:\/\/(www\.)?is\.gd\//i.test(raw)){
-    try{
-      $("scanHelp").textContent="正在解析電池 QR Code…";
-      const {data,error}=await sb.functions.invoke("resolve-battery-qr",{body:{url:raw}});
-      if(!error && data?.battery_code)return String(data.battery_code).trim().toUpperCase();
-    }catch(e){}
-    // Keep DB alias as fallback for any previously registered QR.
-    const {data,error}=await sb.rpc("resolve_battery_qr",{p_qr_value:raw});
-    if(!error&&data)return String(data).toUpperCase();
-  }
-  return "";
+let restaurant=null,timer=null;
+const centerMap={TP01:"I997-",NT01:"I994-",TY01:"I995-",TC01:"I996-",TN01:"I998-",KH01:"I981-"};
+function batteryCode(){
+ const c=$("center").value,s=$("suffix").value.replace(/\D/g,"");
+ if(!c||!s)return "";
+ return centerMap[c]+s.padStart(3,"0");
 }
-async function proceed(raw){
-  const code=await normalizeBatteryCode(raw);
-  if(!code){
-    $("scanHelp").textContent="此 QR Code 尚未對應電池編號。請手動輸入電池編號；管理者可在後台建立短網址對應。";
-    $("batteryCode").value="";
-    return;
-  }
-  confirmedCode=code;
-  $("batteryCode").value=code;
-  $("batteryDisplay").textContent=`電池編號：${code}`;
-  stopCamera();
-  $("scanStep").classList.add("hidden");
-  $("form").classList.remove("hidden");
-  scrollTo({top:0,behavior:"smooth"});
-}
-$("confirmCode").onclick=()=>proceed($("batteryCode").value);
-$("changeBattery").onclick=()=>{confirmedCode="";$("form").classList.add("hidden");$("scanStep").classList.remove("hidden");$("msg").textContent="";scrollTo({top:0,behavior:"smooth"})};
-$("scan").onclick=startCamera;$("stopScan").onclick=stopCamera;
-async function startCamera(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});$("video").srcObject=stream;$("cameraBox").style.display="block";await $("video").play();scanRunning=true;$("scanHelp").textContent="請將電池 QR Code 對準鏡頭";if("BarcodeDetector"in window){try{const d=new BarcodeDetector({formats:["qr_code"]});nativeLoop(d);return}catch(e){}}jsqrLoop()}catch(e){$("scanHelp").textContent="無法開啟相機，請確認瀏覽器相機權限，或改用手動輸入。"}}
-async function nativeLoop(d){if(!scanRunning)return;try{const codes=await d.detect($("video"));if(codes.length)return proceed(codes[0].rawValue)}catch(e){}requestAnimationFrame(()=>nativeLoop(d))}
-function jsqrLoop(){if(!scanRunning)return;const v=$("video"),c=$("scanCanvas");if(v.readyState>=2){c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(v,0,0,c.width,c.height);const img=x.getImageData(0,0,c.width,c.height);if(window.jsQR){const code=jsQR(img.data,img.width,img.height,{inversionAttempts:"dontInvert"});if(code?.data)return proceed(code.data)}}requestAnimationFrame(jsqrLoop)}
-function stopCamera(){scanRunning=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$("cameraBox").style.display="none"}
-$("center").onchange=()=>{restaurant=null;$("restaurantSearch").value="";$("restaurantResults").innerHTML="";$("restaurantSelected").innerHTML=""};
-$("restaurantSearch").oninput=()=>{restaurant=null;$("restaurantSelected").innerHTML="";clearTimeout(timer);timer=setTimeout(searchR,180)};
-async function searchR(){const q=$("restaurantSearch").value.trim();if(!q||!$("center").value)return;const {data,error}=await sb.rpc("public_restaurant_search",{p_center_id:$("center").value,p_keyword:q});if(error)return;$("restaurantResults").innerHTML=(data||[]).map((r,i)=>`<div class="result" data-i="${i}"><b>${r.name}</b><small>${r.store_no||""}</small></div>`).join("")||'<div class="result">找不到餐廳</div>';document.querySelectorAll("[data-i]").forEach(e=>e.onclick=()=>{restaurant=data[+e.dataset.i];$("restaurantSearch").value=restaurant.name;$("restaurantResults").innerHTML="";$("restaurantSelected").className="chosen";$("restaurantSelected").textContent=`✓ 已選擇：${restaurant.name}`})}
-$("form").onsubmit=async e=>{e.preventDefault();if(!confirmedCode)return alert("請先掃描電池 QR Code");if(!restaurant)return alert("請選擇放置餐廳");const {error}=await sb.rpc("report_battery_fault",{p_restaurant_id:restaurant.id,p_battery_code:confirmedCode,p_reported_by:$("reporter").value.trim(),p_issue_description:$("issue").value.trim()});if(error)return $("msg").textContent="送出失敗："+error.message;$("msg").textContent="✓ 電池故障已回報";setTimeout(()=>location.href="./index.html",900)};
-addEventListener("beforeunload",stopCamera);detectInAppBrowser();init();
+function preview(){const code=batteryCode();$("batteryPreview").textContent="本次回報電池："+(code||"-")}
+$("center").onchange=()=>{restaurant=null;$("restaurantSearch").value="";$("restaurantSelected").textContent="";$("restaurantResults").innerHTML="";const c=$("center").value;$("prefix").textContent=c?centerMap[c]:"請先選中心";$("suffix").disabled=!c;$("restaurantSearch").disabled=!c;preview()};
+$("suffix").oninput=e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,6);preview()};
+$("suffix").onblur=e=>{if(e.target.value)e.target.value=e.target.value.padStart(3,"0");preview()};
+$("restaurantSearch").oninput=()=>{restaurant=null;$("restaurantSelected").textContent="";clearTimeout(timer);timer=setTimeout(searchRestaurant,180)};
+async function searchRestaurant(){const q=$("restaurantSearch").value.trim(),c=$("center").value;if(!q||!c)return;$("restaurantResults").innerHTML='<div class="result">搜尋中…</div>';const {data,error}=await sb.rpc("public_restaurant_search",{p_center_code:c,p_keyword:q});if(error){$("restaurantResults").innerHTML=`<div class="result">${error.message}</div>`;return}$("restaurantResults").innerHTML=(data||[]).map((r,i)=>`<div class="result" data-r="${i}"><b>${r.name}</b><small>${r.store_no||""}</small></div>`).join("")||'<div class="result">找不到餐廳</div>';document.querySelectorAll("[data-r]").forEach(e=>e.onclick=()=>{restaurant=data[+e.dataset.r];$("restaurantSearch").value=restaurant.name;$("restaurantResults").innerHTML="";$("restaurantSelected").textContent=`✓ ${restaurant.name}${restaurant.store_no?"｜"+restaurant.store_no:""}`})}
+$("form").onsubmit=async e=>{e.preventDefault();const code=batteryCode();if(!code)return alert("請輸入電池編號");if(!restaurant)return alert("請先從搜尋結果選擇放置餐廳");const issue=$("issue").value.trim(),who=$("reportedBy").value.trim();if(!issue||!who)return;const {data,error}=await sb.rpc("report_battery_fault",{p_restaurant_id:restaurant.id,p_battery_code:code,p_reported_by:who,p_issue_description:issue});if(error){$("msg").textContent=error.message;return}$("msg").textContent=`✓ 已送出 ${code} 故障回報`;$("suffix").value="";$("issue").value="";$("reportedBy").value="";restaurant=null;$("restaurantSearch").value="";$("restaurantSelected").textContent="";preview()};
