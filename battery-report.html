@@ -1,5 +1,67 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>電池故障回報</title><link rel="stylesheet" href="./inspection.css?v=final"></head><body><main class="wrap"><div class="brand">KFC DELIVERY</div><h1>電池故障回報</h1><p><a href="./index.html">← 返回功能入口</a></p>
-<form id="form"><section class="card"><b>01・放置餐廳</b><h2>選擇外送中心與餐廳</h2><select id="center" required></select><input id="restaurantSearch" autocomplete="off" placeholder="輸入餐廳名稱或店號" required><div id="restaurantResults"></div><div id="restaurantSelected"></div></section>
-<section class="card"><b>02・電池</b><h2>掃描 QR Code 或輸入編號</h2><div class="row"><input id="batteryCode" placeholder="電池 QR Code / 編號" required><button type="button" class="secondary" id="scan">掃描 QR</button></div><video id="video" playsinline style="display:none;width:100%;border-radius:14px;margin-top:10px"></video><small id="scanHelp"></small></section>
-<section class="card"><b>03・故障內容</b><input id="reporter" placeholder="回報人姓名" required><textarea id="issue" rows="4" placeholder="請描述電池故障狀況" required></textarea></section><button id="submit" type="submit">送出故障回報</button><div id="msg" class="msg"></div></form></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js?v=final"></script><script src="./battery-report.js?v=final"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>電池故障回報</title>
+<link rel="stylesheet" href="./inspection.css?v=final-rider-fix">
+</head>
+<body>
+<main class="wrap">
+<header>
+<a class="home-link" href="./index.html">← 返回主選單</a>
+<div class="brand">KFC DELIVERY</div>
+<h1>電池故障回報</h1>
+<p>請先掃描電池 QR Code</p>
+</header>
+
+<section class="card" id="scanStep">
+<b>01・掃描電池</b>
+<h2>掃描 QR Code</h2>
+<p class="step-help">先掃描電池上的 QR Code，掃描成功後才填寫異常說明與放置餐廳。</p>
+<button type="button" class="submit" id="scan">開啟相機掃描 QR Code</button>
+<video id="video" playsinline style="display:none;width:100%;border-radius:14px;margin-top:12px"></video>
+<div id="scanHelp"></div>
+<div class="manual-divider"><span>或</span></div>
+<label>無法掃描時，可手動輸入電池編號</label>
+<div class="row">
+<input id="batteryCode" autocomplete="off" placeholder="輸入電池 QR Code / 編號">
+<button type="button" class="secondary" id="confirmCode">確認編號</button>
+</div>
+</section>
+
+<form id="form" class="hidden">
+<section class="card">
+<b>02・電池資料</b>
+<h2 id="batteryDisplay">電池編號</h2>
+<button type="button" class="secondary" id="changeBattery">重新掃描 / 更換編號</button>
+</section>
+
+<section class="card">
+<b>03・異常說明</b>
+<h2>請描述故障狀況</h2>
+<input id="reporter" placeholder="回報人姓名" required>
+<textarea id="issue" rows="4" placeholder="例如：無法充電、續航力下降、外觀破損..." required></textarea>
+</section>
+
+<section class="card">
+<b>04・放置餐廳</b>
+<h2>選擇電池目前放置餐廳</h2>
+<select id="center" required><option value="">請選擇外送中心</option></select>
+<input id="restaurantSearch" autocomplete="off" placeholder="輸入餐廳名稱或店號" required>
+<div id="restaurantResults"></div>
+<div id="restaurantSelected"></div>
+</section>
+
+<div class="action-row">
+<a class="secondary home-button" href="./index.html">返回主選單</a>
+<button id="submit" class="submit" type="submit">送出故障回報</button>
+</div>
+<div id="msg"></div>
+</form>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js?v=final"></script>
+<script src="./battery-report.js?v=final-rider-fix"></script>
+</body>
+</html>

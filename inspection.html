@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>KFC 外送機車每日檢查</title>
-  <link rel="stylesheet" href="./inspection.css?v=12">
+  <link rel="stylesheet" href="./inspection.css?v=final-rider-fix">
 </head>
 <body>
 <main class="wrap">
-<header><div class="brand">KFC BIKE MAINTENANCE</div><h1>開始上班</h1><p>外送機車每日安全檢查</p></header>
+<header><a class="home-link" href="./index.html">← 返回主選單</a><div class="brand">KFC BIKE MAINTENANCE</div><h1>開始上班</h1><p>外送機車每日安全檢查</p></header>
 <form id="form">
 <section class="card"><b>01・領車人</b><h2>領車人</h2><input id="inspector" required placeholder="請輸入姓名"></section>
 <section class="card"><b>02・領車中心</b><h2>領車中心</h2><select id="center" required><option>載入中...</option></select></section>
@@ -29,7 +29,7 @@
 </div><input type="hidden" id="fuelCardStatus">
 </section>
 <section class="card"><b>09・異常 / 備註</b><h2>備註</h2><textarea id="note" rows="4" placeholder="其他補充說明"></textarea></section>
-<button id="submit" class="submit">確認並送出</button><div id="msg"></div>
+<div class="action-row"><a class="secondary home-button" href="./index.html">返回主選單</a><button id="submit" class="submit">確認並送出</button></div><div id="msg"></div>
 </form></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./supabase-config.js?v=10"></script>
