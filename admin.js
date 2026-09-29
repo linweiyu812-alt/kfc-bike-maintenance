@@ -1,13 +1,43 @@
 const sb=supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY),$=x=>document.getElementById(x);let profile,raw=[];
 const fmt=t=>t?new Date(t).toLocaleString("zh-TW",{timeZone:"Asia/Taipei"}):"尚無檢查紀錄";
+const ZH_HEADERS={
+ center_name:"外送中心",center_code:"中心代碼",restaurant_name:"餐廳",store_no:"餐廳店號",
+ plate:"車牌",vehicle_type:"車種",inspection_status:"檢查狀態",status:"狀態",
+ inspected_at:"檢查時間",last_inspected_at:"上次檢查時間",inspector_name:"領車人",
+ mileage:"公里數",open_maintenance_count:"未完成維修數",
+ dashcam_code:"行車紀錄器編號",dashcam_status:"行車紀錄器狀態",
+ tire_pressure_ok:"胎壓是否達標",tire_tread_abnormal:"胎紋是否異常",
+ engine_ok:"引擎",front_brake_ok:"前煞車",rear_brake_ok:"後煞車",
+ headlight_ok:"車頭大燈",brake_light_ok:"煞車燈",tire_ok:"輪胎",
+ other_abnormal:"其他異常",other_note:"其他異常說明",fuel_card_status:"加油卡狀態",
+ note:"備註",notes:"備註",created_at:"建立時間",updated_at:"更新時間",
+ completed_at:"完成時間",completed_by:"完成人員",reported_at:"回報時間",
+ reported_by:"回報人",issue_description:"異常說明",resolution_note:"處理說明",
+ maintenance_item:"維修項目",description:"說明",id:"系統編號"
+};
+const ZH_VALUES={
+ oil:"油車",gas:"油車",fuel:"油車",electric:"電動車",
+ normal:"正常",abnormal:"異常",completed:"已完成",incomplete:"未完成",
+ pending:"待處理",repairing:"維修中",repaired:"維修完成",scrapped:"報廢",
+ active:"啟用",inactive:"停用",yes:"是",no:"否",lost:"遺失",
+ received:"已領",not_received:"未領",none:"無",na:"不適用"
+};
+function zhValue(v){
+ if(v===true)return "是"; if(v===false)return "否"; if(v===null||v===undefined)return "";
+ if(typeof v==="string"){const k=v.trim().toLowerCase();if(ZH_VALUES[k])return ZH_VALUES[k]}
+ return v;
+}
+function zhRows(rows){return (rows||[]).map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[ZH_HEADERS[k]||k,zhValue(v)])))}
+function zhSheet(rows){return XLSX.utils.json_to_sheet(zhRows(rows))}
+
 async function init(){const {data:{session}}=await sb.auth.getSession();if(!session)return location.replace("./login.html");const {data:p,error}=await sb.rpc("my_admin_profile");if(error||!p?.length)return location.replace("./login.html");profile=p[0];if(profile.role==="op")$("opData").style.display="block";$("who").textContent=profile.role==="op"?"OP｜全市場":profile.center_name;const {data:cs}=await sb.rpc("admin_allowed_centers");$("center").innerHTML=(profile.role==="op"?'<option value="">全部中心</option>':"")+(cs||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join("");if(profile.role!=="op"){$("center").value=profile.center_id;$("center").disabled=true}$("date").value=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei"}).format(new Date());load();if(profile.role==="op"){loadOldCount();loadArchiveCounts()}}
 async function load(){const {data,error}=await sb.rpc("secure_admin_daily_bike_status",{p_center_id:$("center").value||null,p_date:$("date").value});if(error)return $("msg").textContent="載入失敗："+error.message;raw=data||[];let n=raw.length,c=raw.filter(x=>x.inspection_id).length,a=raw.filter(x=>x.inspection_status==="abnormal").length,m=raw.reduce((s,x)=>s+Number(x.open_maintenance_count||0),0);$("total").textContent=n;$("checked").textContent=c;$("unchecked").textContent=n-c;$("abnormal").textContent=a;$("openmaint").textContent=m;$("completion").textContent=n?`完成率 ${(c/n*100).toFixed(1)}%`:"";render()}
 function render(){let a=raw,f=$("filter").value;if(f==="completed")a=a.filter(x=>x.inspection_id);if(f==="incomplete")a=a.filter(x=>!x.inspection_id);if(f==="abnormal")a=a.filter(x=>x.inspection_status==="abnormal");$("rows").innerHTML=a.map(x=>`<tr><td>${x.center_name}</td><td><b>${x.plate}</b></td><td>${x.vehicle_type||""}</td><td>${x.inspection_id?(x.inspection_status==="abnormal"?"<span class='badge abnormal'>異常</span>":"<span class='badge normal'>已完成</span>"):"<span class='badge uninspected'>未完成</span>"}</td><td>${x.inspection_id?fmt(x.inspected_at):"-"}</td><td>${fmt(x.last_inspected_at)}</td><td>${x.inspector_name||"-"}</td><td>${x.mileage??"-"}</td><td>${x.open_maintenance_count?`<span class="badge pending">${x.open_maintenance_count} 項未完成</span>`:"-"}</td></tr>`).join("")}
-async function exp(){const {data,error}=await sb.rpc("secure_admin_inspection_export",{p_center_id:$("center").value||null,p_from_date:$("date").value,p_to_date:$("date").value});if(error)return alert(error.message);let d=data||[];if($("filter").value==="abnormal")d=d.filter(x=>x.status==="abnormal");if(!d.length)return alert("沒有可匯出的檢查資料");const ws=XLSX.utils.json_to_sheet(d),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"檢查明細");XLSX.writeFile(wb,`KFC機車檢查明細_${$("date").value}.xlsx`)}
+async function exp(){const {data,error}=await sb.rpc("secure_admin_inspection_export",{p_center_id:$("center").value||null,p_from_date:$("date").value,p_to_date:$("date").value});if(error)return alert(error.message);let d=data||[];if($("filter").value==="abnormal")d=d.filter(x=>x.status==="abnormal");if(!d.length)return alert("沒有可匯出的檢查資料");const ws=zhSheet(d),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"檢查明細");XLSX.writeFile(wb,`KFC機車檢查明細_${$("date").value}.xlsx`)}
 $("refresh").onclick=load;$("center").onchange=load;$("date").onchange=load;$("filter").onchange=render;$("export").onclick=exp;$("logout").onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.replace("./login.html")};init();
 function cutoffDate(){const d=new Date();d.setMonth(d.getMonth()-3);return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei"}).format(d)}
 async function loadOldCount(){const {data,error}=await sb.rpc("op_old_inspection_count");$("oldCount").textContent=error?"讀取失敗":`3 個月前共有 ${data||0} 筆`}
-async function exportOld(){const {data,error}=await sb.rpc("op_old_inspection_export");if(error)return alert(error.message);if(!data?.length)return alert("目前沒有 3 個月前的資料");const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"3個月前檢查明細");XLSX.writeFile(wb,`KFC歷史檢查備份_截止${cutoffDate()}.xlsx`)}
+async function exportOld(){const {data,error}=await sb.rpc("op_old_inspection_export");if(error)return alert(error.message);if(!data?.length)return alert("目前沒有 3 個月前的資料");const ws=zhSheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"3個月前檢查明細");XLSX.writeFile(wb,`KFC歷史檢查備份_截止${cutoffDate()}.xlsx`)}
 async function deleteOld(){const {data:n,error:e}=await sb.rpc("op_old_inspection_count");if(e)return alert(e.message);if(!n)return alert("目前沒有可清除的資料");if(!confirm(`即將永久刪除 3 個月前 ${n} 筆檢查明細。\\n\\n請確認已先匯出 Excel 備份。\\n\\n確定繼續？`))return;const phrase=prompt('最後確認：請輸入「清除歷史資料」');if(phrase!=="清除歷史資料")return alert("已取消");const {data,error}=await sb.rpc("op_delete_old_inspections",{p_confirm:"清除歷史資料"});if(error)return alert("刪除失敗："+error.message);alert(`已清除 ${data} 筆歷史檢查資料`);load();loadOldCount()}
 document.addEventListener("DOMContentLoaded",()=>{const a=$("exportOld"),d=$("deleteOld");if(a)a.onclick=exportOld;if(d)d.onclick=deleteOld});
 
@@ -16,7 +46,7 @@ async function loadArchiveCounts(){
  $("oldMaintCount").textContent=me?"讀取失敗":`3 個月前已完成：${m||0} 筆`;
  $("oldDashCount").textContent=de?"讀取失敗":`3 個月前已完成：${d||0} 筆`;
 }
-async function exportArchive(rpc,sheet,file){const {data,error}=await sb.rpc(rpc);if(error)return alert(error.message);if(!data?.length)return alert("目前沒有符合條件的資料");const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,sheet);XLSX.writeFile(wb,file)}
+async function exportArchive(rpc,sheet,file){const {data,error}=await sb.rpc(rpc);if(error)return alert(error.message);if(!data?.length)return alert("目前沒有符合條件的資料");const ws=zhSheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,sheet);XLSX.writeFile(wb,file)}
 async function deleteArchive(countRpc,deleteRpc,label){
  const {data:n,error:e}=await sb.rpc(countRpc);if(e)return alert(e.message);if(!n)return alert("目前沒有可清除的資料");
  if(!confirm(`即將永久刪除 ${n} 筆「${label}」。\n\n待處理/維修中資料不會刪除。\n請確認已先匯出 Excel 備份。`))return;
