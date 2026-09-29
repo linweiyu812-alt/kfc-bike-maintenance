@@ -8,7 +8,7 @@
 .battery-preview{padding:14px 16px;border-radius:10px;background:#f7f4ee;font-weight:700}
 .battery-form .btn{justify-self:start}
 #restaurantResults{position:relative;display:grid;gap:6px;margin-top:4px;max-height:280px;overflow:auto}
-#restaurantResults .result{border-radius:10px;width:100%;text-align:left;font:inherit}
+#restaurantResults .result{border-radius:10px}
 #restaurantResults .result:hover,#restaurantResults .result:active{background:#f7f4ee}
 #restaurantSelected{display:block;margin-top:6px;font-weight:700;color:#2f6b3b}
 #restaurantResults .result{padding:10px 12px;border:1px solid #e4ded4;background:#fff;cursor:pointer}
@@ -48,32 +48,4 @@
   setTimeout(sync,0);
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=168"></script><script>
-(function(){
- const $=id=>document.getElementById(id); let restaurant=null,timer=null,sb=null;
- function client(){if(sb)return sb;if(!window.supabase||!window.KFC_CONFIG)return null;return sb=window.supabase.createClient(KFC_CONFIG.SUPABASE_URL,KFC_CONFIG.SUPABASE_KEY)}
- function code(){const m={TP01:"I997-",NT01:"I994-",TY01:"I995-",TC01:"I996-",TN01:"I998-",KH01:"I981-"},s=$("suffix").value.replace(/\D/g,""),c=$("center").value;return c&&s?(m[c]||"")+s.padStart(3,"0"):""}
- function clearR(){restaurant=null;$("restaurantSelected").textContent="";$("restaurantResults").innerHTML=""}
- $("center").addEventListener("change",()=>{$("restaurantSearch").value="";clearR()});
- $("restaurantSearch").addEventListener("input",()=>{clearTimeout(timer);clearR();const q=$("restaurantSearch").value.trim();if(!q)return;$("restaurantResults").innerHTML='<div class="result">搜尋中…</div>';timer=setTimeout(search,150)});
- async function search(){
-  const q=$("restaurantSearch").value.trim(),c=$("center").value;if(!q||!c)return;
-  const api=client();if(!api){$("restaurantResults").innerHTML='<div class="result">搜尋功能載入失敗，請重新整理頁面。</div>';return}
-  try{
-   const {data,error}=await api.rpc("public_restaurant_search",{p_center_code:c,p_keyword:q});
-   if(error){$("restaurantResults").innerHTML='<div class="result">搜尋失敗：'+error.message+'</div>';return}
-   const rows=(data||[]).slice(0,10);
-   if(!rows.length){$("restaurantResults").innerHTML='<div class="result">找不到符合的餐廳</div>';return}
-   $("restaurantResults").innerHTML=rows.map((r,i)=>'<button type="button" class="result restaurant-choice" data-index="'+i+'"><b>'+(r.name||"")+'</b>'+(r.store_no?'<small>店號：'+r.store_no+'</small>':'')+'</button>').join("");
-   document.querySelectorAll(".restaurant-choice").forEach(b=>b.onclick=()=>{restaurant=rows[+b.dataset.index];$("restaurantSearch").value=restaurant.name||"";$("restaurantResults").innerHTML="";$("restaurantSelected").textContent="✓ 已選擇："+(restaurant.name||"")+(restaurant.store_no?"｜"+restaurant.store_no:"")});
-  }catch(e){$("restaurantResults").innerHTML='<div class="result">搜尋失敗：'+(e?.message||e)+'</div>'}
- }
- $("form").addEventListener("submit",async e=>{
-  e.preventDefault();const bc=code();if(!bc)return alert("請輸入電池編號");if(!restaurant)return alert("請先從搜尋結果選擇放置餐廳");
-  const issue=$("issue").value.trim(),who=$("reportedBy").value.trim();if(!issue||!who)return;const api=client();if(!api)return alert("系統載入失敗，請重新整理頁面");
-  const {error}=await api.rpc("report_battery_fault",{p_restaurant_id:restaurant.id,p_battery_code:bc,p_reported_by:who,p_issue_description:issue});
-  if(error){$("msg").textContent="送出失敗："+error.message;return}$("msg").textContent="✓ 已送出 "+bc+" 故障回報";
-  $("suffix").value="";$("issue").value="";$("reportedBy").value="";$("restaurantSearch").value="";clearR();if(window.syncBatteryCenter)window.syncBatteryCenter();
- });
-})();
-</script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js?v=9"></script><script src="./battery-report.js?v=16.7"></script></body></html>
